@@ -1,7 +1,8 @@
-import { App, Editor, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, sanitizeHTMLToDom } from 'obsidian';
+import { Editor, MarkdownView, Notice, Plugin, WorkspaceLeaf } from 'obsidian';
 import { ExampleView, VIEW_TYPE_EXAMPLE } from "view";
-import { SampleModal } from "modal";
+import { SampleModal, AddAButtonModal } from "modal";
 import { SampleSettingTab } from "settings";
+import { buttonStateBlock, csvExample } from 'code-block';
 // Remember to rename these classes and interfaces!
 
 interface MyPluginSettings {
@@ -27,20 +28,47 @@ export default class MyPlugin extends Plugin {
 
     async onload() {
         await this.loadSettings();
-        this.registerView(
-            VIEW_TYPE_EXAMPLE,
-            (leaf) => new ExampleView(leaf)
-        );
+        // this.registerView(
+        //     VIEW_TYPE_EXAMPLE,
+        //     (leaf) => new ExampleView(leaf)
+        // );
 
-        this.addRibbonIcon("dice", "Activate view", () => {
-            this.activateView();
+        // this.addRibbonIcon("dice", "Activate view", () => {
+        //     this.activateView();
+        // });
+
+        //csv example given
+        this.registerMarkdownCodeBlockProcessor("csv", (source, el, ctx) => {
+            csvExample(source, el, ctx)
         });
+
+
+        // render buttons in a custom code block
+        // using a function to call it instead of just writing it all in main.ts
+        // it gets confusing for me if everything is just stuffed into one file
+        this.registerMarkdownCodeBlockProcessor("button-state", (source, el, ctx) => {
+            buttonStateBlock(source, el, ctx, this.app, this)
+        })
+
+
 
         // This creates an icon in the left ribbon.
         const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
             // Called when the user clicks the icon.
             new Notice('This is a notice! And I added a little extra');
         });
+
+
+
+        // on in left ribbon to make a button
+        this.addRibbonIcon('mouse-pointer-click', 'Make a Button', (evt: MouseEvent) => {
+            new AddAButtonModal(this.app, (btnName, btnColor) => {
+                new Notice(`You want a button called: ${btnName} using the color: ${btnColor}...cool!`);
+            }).open();
+        })
+
+
+
         // Perform additional things with the ribbon
         ribbonIconEl.addClass('my-plugin-ribbon-class');
 
@@ -101,6 +129,7 @@ export default class MyPlugin extends Plugin {
     onunload() {
 
     }
+
     async activateView() {
         const { workspace } = this.app;
 
