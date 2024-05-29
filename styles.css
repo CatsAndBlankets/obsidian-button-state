@@ -6,3 +6,33 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+.button-state {
+    --min-width: 20%;
+    --columns: 4;
+    display: grid;
+    grid-template-columns: repeat(var(--columns), minmax(var(--size-4-12), 1fr));
+    grid-auto-rows: repeat(auto-fit, minmax(var(--size-4-12), 1fr));
+    grid-auto-flow: row;
+    box-sizing: border-box;
+}
+
+.button-state button {
+    margin: var(--size-4-1);
+    padding: var(--size-4-5);
+    font-size: var(--font-smallest);
+    font-weight: var(--font-normal);
+    text-wrap: wrap;
+    border: var(--border-width) solid transparent;
+}
+
+.button-state button:hover {
+    border: var(--border-width) solid var(--interactive-accent-hover);
+}
+
+
+
+@media only screen and (max-width: 1000px){
+    .button-state {
+        grid-template-columns: repeat(3, minmax(var(--size-4-12), 1fr));
+    }
+  }
