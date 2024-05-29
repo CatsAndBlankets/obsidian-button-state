@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Notice, Plugin, WorkspaceLeaf } from 'obsidian';
+import { type Editor, MarkdownView, Notice, Plugin, type WorkspaceLeaf } from 'obsidian';
 import { ExampleView, VIEW_TYPE_EXAMPLE } from "view";
 import { SampleModal, AddAButtonModal } from "modal";
 import { SampleSettingTab } from "settings";
@@ -13,12 +13,12 @@ interface MyPluginSettings {
 const DEFAULT_SETTINGS: MyPluginSettings = {
     mySetting: 'default',
     colors: {
-        "default": [
-            `rgba(var(--color-cyan-rgb), 0.7)`,
-            `rgba(var(--color-green-rgb), 0.7)`,
-            `rgba(var(--color-yellow-rgb), 0.7)`,
-            `rgba(var(--color-orange-rgb), 0.7)`,
-            `rgba(var(--color-red-rgb), 0.7)`
+        default: [
+            "rgba(var(--color-cyan-rgb), 0.7)",
+            "rgba(var(--color-green-rgb), 0.7)",
+            "rgba(var(--color-yellow-rgb), 0.7)",
+            "rgba(var(--color-orange-rgb), 0.7)",
+            "rgba(var(--color-red-rgb), 0.7)"
         ]
     }
 }
