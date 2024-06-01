@@ -66,14 +66,14 @@ export function RGBToHex(rgb: string) {
 	return `#${hex(n[1])}${hex(n[2])}${hex(n[3])}`;
 }
 
-export function initpickr() {
+export function initpickr(color: string, c: string) {
 	const pickr = Pickr.create({
 		// Selector or element which will be replaced with the actual color-picker.
 		// Can be a HTMLElement.
 		el: document.querySelector("button.pickr") as HTMLElement,
 
 		// Where the pickr-app should be added as child.
-		container: "div.modal",
+		container: c,
 
 		// Which theme you want to use. Can be 'classic', 'monolith' or 'nano'
 		theme: "nano",
@@ -126,7 +126,8 @@ export function initpickr() {
 
 		// Default color. If you're using a named color such as red, white ... set
 		// a value for defaultRepresentation too as there is no button for named-colors.
-		default: "#42445a",
+		// default: "#42445a",
+		default: color,
 
 		// Optional color swatches. When null, swatches are disabled.
 		// Types are all those which can be produced by pickr e.g. hex(a), hsv(a), hsl(a), rgb(a), cmyk, and also CSS color names like 'magenta'.

@@ -4,7 +4,6 @@ import {
 	Setting,
 	sanitizeHTMLToDom,
 	Notice,
-	ColorComponent,
 	setIcon,
 } from "obsidian";
 import { HSLToHex, initpickr } from "helper-functions";
@@ -44,11 +43,11 @@ export class AddAButtonModal extends Modal {
 	btnName: string;
 	btnPalette: string[] = [];
 	color_id: string | null;
-	onSubmit: (btnName: string, btnPalette: string[]) => void;
+	onSubmit: () => void;
 	constructor(
 		app: App,
 		plugin: MyPlugin,
-		onSubmit: (btnName: string, btnPalette: string[]) => void,
+		onSubmit: () => void,
 		color_id?: string,
 	) {
 		super(app);
@@ -84,9 +83,19 @@ export class AddAButtonModal extends Modal {
 		new Setting(contentEl)
 			.setName("Button Color")
 			.addButton((btn) => {
-				btn.setClass("pickr").setIcon("palette");
+				btn.setClass("pickr");
 
-				const p = initpickr();
+				(
+					document.querySelector("button.pickr") as HTMLElement
+				).style.setProperty("background", color);
+
+				(document.querySelector("button.pickr") as HTMLElement).setAttribute(
+					"style",
+					`background: ${color}; padding: var(--size-4-4);`,
+				);
+
+				const p = initpickr(color, "div.modal-container:last-child");
+				p.setColor(color);
 				p.on("change", (c: Pickr.HSVaColor) => {
 					(
 						document.querySelector("button.pickr") as HTMLElement
@@ -106,10 +115,22 @@ export class AddAButtonModal extends Modal {
 						cls: "color-block",
 						attr: { style: `background: ${color};` },
 					});
-					color_div.createEl("span", { text: color, cls: "hex-code" });
-					const btn = div.createEl("button", { text: "huh" });
+					const span = color_div.createEl("span", {
+						text: color,
+						cls: "hex-code",
+					});
+
+					// this.btnPalette.push(span.innerHTML);
+
+					const index = this.btnName.length;
+					const btn = div.createEl("button");
+					setIcon(btn, "trash-2");
+
 					btn.addEventListener("click", () => {
 						list_item.remove();
+						// index - 1 !== -1
+						// 	? this.btnPalette.splice(index - 1, 1)
+						// 	: this.btnPalette.pop();
 					});
 				}),
 			);
@@ -119,20 +140,28 @@ export class AddAButtonModal extends Modal {
 
 		if (this.color_id) {
 			const color_array = this.plugin.settings.colors[this.color_id];
-			for (const c of color_array) {
+			for (const [i, c] of color_array.entries()) {
 				const list_item = color_list.createEl("li", {
 					attr: { draggable: true },
 				});
 				const div = list_item.createEl("div");
 				const color_div = div.createEl("div", { cls: "info-block" });
+
 				color_div.createEl("div", {
 					cls: "color-block",
 					attr: { style: `background: ${c};` },
 				});
-				color_div.createEl("span", { text: c, cls: "hex-code" });
-				const btn = div.createEl("button", { text: "huh" });
+				const span = color_div.createEl("span", { text: c, cls: "hex-code" });
+
+				// this.btnPalette.push(span.innerHTML);
+
+				const index = i;
+
+				const btn = div.createEl("button");
+				setIcon(btn, "trash-2");
 				btn.addEventListener("click", () => {
 					list_item.remove();
+					// this.btnPalette.splice(index - 1, 1);
 				});
 			}
 		}
@@ -157,7 +186,7 @@ export class AddAButtonModal extends Modal {
 		sortableList.addEventListener("dragover", (e: DragEvent) => {
 			e.preventDefault();
 			const afterElement = getDragAfterElement(sortableList, e.clientY);
-			// const currentElement = document.querySelector(".dragging") as HTMLElement;
+
 			if (afterElement === null) {
 				sortableList.appendChild(draggedItem as HTMLElement);
 			} else {
@@ -188,20 +217,25 @@ export class AddAButtonModal extends Modal {
 
 		new Setting(contentEl).addButton((btn) =>
 			btn.setButtonText("Submit").onClick(() => {
-				for (const i of document.querySelectorAll('span[class="hex-code"]')) {
-					(this.btnPalette as string[]).push(i.innerHTML);
+				for (const l of document.querySelectorAll(
+					'li span[class="hex-code"]',
+				)) {
+					this.btnPalette.push(l.innerHTML);
 				}
 
 				if (!this.btnName && this.btnPalette.length === 0) {
 					new Notice("There's nothing here!");
-					return;
-				}
-				if (!this.btnName) {
-					new Notice("Where's the palette name???");
+					this.btnPalette = []; //empty out the array to rebuild it for next click event
 					return;
 				}
 				if (this.btnPalette.length === 0) {
 					new Notice("Where are the colors???");
+					this.btnPalette = []; //empty out the array to rebuild it for next click event
+					return;
+				}
+				if (!this.btnName) {
+					new Notice("Where's the palette name???");
+					this.btnPalette = []; //empty out the array to rebuild it for next click event
 					return;
 				}
 
@@ -210,7 +244,7 @@ export class AddAButtonModal extends Modal {
 					await this.plugin.saveSettings();
 				})();
 				this.close();
-				this.onSubmit(this.btnName, this.btnPalette);
+				this.onSubmit();
 			}),
 		);
 	}

@@ -51,7 +51,7 @@ export class SettingTab extends PluginSettingTab {
                 const edit_btn = btnDiv.createEl('button')
                 setIcon(edit_btn, "pencil-line")
                 edit_btn?.addEventListener("click", async () => {
-                    new AddAButtonModal(this.app, this.plugin, (btnName: string, btnPalette: string[]) => { this.display(); }, name).open();
+                    new AddAButtonModal(this.app, this.plugin, () => { this.display(); }, name).open();
                 })
 
                 const del_button = btnDiv.createEl('button')
