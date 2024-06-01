@@ -1,7 +1,7 @@
 import { type Editor, MarkdownView, Notice, Plugin, type WorkspaceLeaf } from 'obsidian';
 import { ExampleView, VIEW_TYPE_EXAMPLE } from "view";
 import { SampleModal, AddAButtonModal } from "modal";
-import { SampleSettingTab } from "settings";
+import { SettingTab } from "settings";
 import { buttonStateBlock, csvExample } from 'code-block';
 // Remember to rename these classes and interfaces!
 
@@ -78,6 +78,16 @@ export default class MyPlugin extends Plugin {
 
         // This adds a simple command that can be triggered anywhere
         this.addCommand({
+            id: 'open-palette-maker',
+            name: 'Create new button palette',
+            callback: () => {
+                new AddAButtonModal(this.app, this, (btnName:string, btnPalette:string[]) => {}).open();
+            }
+        });
+
+
+        // This adds a simple command that can be triggered anywhere
+        this.addCommand({
             id: 'open-sample-modal-simple',
             name: 'Open sample modal (simple)',
             callback: () => {
@@ -114,7 +124,7 @@ export default class MyPlugin extends Plugin {
         });
 
         // This adds a settings tab so the user can configure various aspects of the plugin
-        this.addSettingTab(new SampleSettingTab(this.app, this));
+        this.addSettingTab(new SettingTab(this.app, this));
 
         // If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
         // Using this function will automatically remove the event listener when this plugin is disabled.
