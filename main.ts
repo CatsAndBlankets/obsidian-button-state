@@ -62,7 +62,7 @@ export default class MyPlugin extends Plugin {
 
         // on in left ribbon to make a button
         this.addRibbonIcon('mouse-pointer-click', 'Make a Button', (evt: MouseEvent) => {
-            new AddAButtonModal(this.app, (btnName, btnColor) => {
+            new AddAButtonModal(this.app, this, (btnName, btnColor) => {
                 new Notice(`You want a button called: ${btnName} using the color: ${btnColor}...cool!`);
             }).open();
         })
