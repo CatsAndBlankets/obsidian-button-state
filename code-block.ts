@@ -1,8 +1,8 @@
 import type MyPlugin from "main"
-import { type MarkdownPostProcessorContext, type App, TFile, TFolder } from "obsidian"
+import { type MarkdownPostProcessorContext, TFile, TFolder } from "obsidian"
 import { btnAction } from "helper-functions"
 
-export async function buttonStateBlock(source: string, el: HTMLElement, _ctx: MarkdownPostProcessorContext, _app: App, plugin: MyPlugin) {
+export async function buttonStateBlock(source: string, el: HTMLElement, _ctx: MarkdownPostProcessorContext, plugin: MyPlugin) {
     const src = source.match(/(^page:\s(.*)\n(.*\n){1,5}(.*)$)/gm)?.map(String)
     if (!src) return
 
@@ -71,8 +71,13 @@ function findTags(file: TFile, tag: string, _el: HTMLElement, btn: HTMLElement, 
 
     if (!tags) return
 
+    // get today's date and then set time to midnight so that time is not influencing the difference in days
     const today = new Date()
-    const todayDate = new Date(`${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`)
+    today.setHours(0)
+    today.setMinutes(0)
+    today.setSeconds(0)
+    today.setMilliseconds(0)
+
     let diff: number | undefined
     let zip: (string | number)[][]
 
@@ -81,15 +86,17 @@ function findTags(file: TFile, tag: string, _el: HTMLElement, btn: HTMLElement, 
         if (t.tag.contains(tag)) {
             let date = new Date(t.tag.match(dateformat))
             if (date.valueOf() === 0) {
-                date = new Date(String(file.name.match(dateformat)).replace("-", "/")) //apparently need to have date strings as YYYY/MM/DD for Date() to work properly?
+                //apparently need to have date strings as YYYY/MM/DD for Date() to work properly?
+                date = new Date(String(file.name.match(dateformat)).replace("-", "/"))
             }
 
-            diff = Math.round((todayDate.getTime() - date.getTime()) / (1000 * 3600 * 24))
+            diff = Math.round((today.getTime() - date.getTime()) / (1000 * 3600 * 24))
             break
         }
     }
 
-    if (!diff) return
+    // stop function if difference doesn't exist or is less than zero
+    if (diff === null || (diff as number) < 0) return
     if (range.length !== color.length) {
         document.createEl("span", { text: "range and colors need to be the same length!" })
         return
@@ -103,9 +110,10 @@ function findTags(file: TFile, tag: string, _el: HTMLElement, btn: HTMLElement, 
         }
     }
 
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
         console.log("I did it :3")
-        btnAction("text:string", "path:string")
+        await btnAction(this.app, file, tag)
+        btn.style.setProperty("background", String(zip[0][1]))
     })
 }
 
