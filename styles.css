@@ -68,6 +68,8 @@ span.hex-code {
 div.info-block {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
+    min-width: 90px;
 }
 
 /* styling settings menu */

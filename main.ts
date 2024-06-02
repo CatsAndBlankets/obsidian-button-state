@@ -1,4 +1,4 @@
-import { type Editor, MarkdownView, Notice, Plugin, type WorkspaceLeaf } from "obsidian"
+import { type Editor, MarkdownView, Notice, Plugin, type WorkspaceLeaf, addIcon } from "obsidian"
 import { ExampleView, VIEW_TYPE_EXAMPLE } from "view"
 import { SampleModal, AddButtonModal, PaletteModal } from "modal"
 import { SettingTab } from "settings"
