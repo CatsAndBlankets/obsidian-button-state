@@ -1,8 +1,9 @@
 import { type Editor, MarkdownView, Notice, Plugin, type WorkspaceLeaf } from "obsidian"
 import { ExampleView, VIEW_TYPE_EXAMPLE } from "view"
-import { SampleModal, AddAButtonModal } from "modal"
+import { SampleModal, AddButtonModal, PaletteModal } from "modal"
 import { SettingTab } from "settings"
 import { buttonStateBlock, csvExample } from "code-block"
+addIcon("square-arrow-up-right",`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-arrow-up-right"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 8h8v8"/><path d="m8 16 8-8"/></svg>`)
 // Remember to rename these classes and interfaces!
 
 interface MyPluginSettings {
@@ -46,7 +47,7 @@ export default class MyPlugin extends Plugin {
         // using a function to call it instead of just writing it all in main.ts
         // it gets confusing for me if everything is just stuffed into one file
         this.registerMarkdownCodeBlockProcessor("button-state", (source, el, ctx) => {
-            buttonStateBlock(source, el, ctx, this.app, this)
+            buttonStateBlock(source, el, ctx, this)
         })
 
         // This creates an icon in the left ribbon.
@@ -55,9 +56,14 @@ export default class MyPlugin extends Plugin {
             new Notice("This is a notice! And I added a little extra")
         })
 
-        // on in left ribbon to make a button
+        // Create icon in left ribbon to open palette modal
         this.addRibbonIcon("mouse-pointer-click", "Make a Button", (evt: MouseEvent) => {
-            new AddAButtonModal(this.app, this, () => {}).open()
+            new PaletteModal(this.app, this, () => {}).open()
+        })
+
+        // Create icon in left ribbon to open add button modal
+        this.addRibbonIcon("square-arrow-up-right", "Make a Button", (evt: MouseEvent) => {
+            new AddButtonModal(this.app, this, () => {}).open()
         })
 
         // Perform additional things with the ribbon
@@ -72,7 +78,7 @@ export default class MyPlugin extends Plugin {
             id: "open-palette-maker",
             name: "Create new button palette",
             callback: () => {
-                new AddAButtonModal(this.app, this, () => {}).open()
+                new PaletteModal(this.app, this, () => {}).open()
             }
         })
 

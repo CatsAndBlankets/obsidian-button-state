@@ -1,11 +1,5 @@
-// One of the following themes
-// import '@simonwep/pickr/dist/themes/classic.min.css';   // 'classic' theme
-// import '@simonwep/pickr/dist/themes/monolith.min.css';  // 'monolith' theme
-// import '@simonwep/pickr/dist/themes/nano.min.css';      // 'nano' theme
-
-// Modern or es5 bundle (pay attention to the note below!)
 import Pickr from "@simonwep/pickr"
-// import Pickr from '@simonwep/pickr/dist/pickr.es5.min';
+import type { App, TFile } from "obsidian"
 
 export function HSLToHex(h: number, s: number, l: number) {
     const ss = s / 100
@@ -235,4 +229,38 @@ export function initpickr(color: string, c: string) {
     return pickr
 }
 
-export function btnAction(text: string, path: string) {}
+export async function btnAction(app: App, file: TFile, text: string) {
+    const f = app.metadataCache.getFileCache(file)
+    const headings = f?.headings
+    if (!headings) return
+    const a = await app.vault.cachedRead(file)
+    const today = new Date()
+    // biome-ignore lint/style/useTemplate: <explanation>
+    const month = ("0" + String(today.getMonth() + 1)).slice(-2)
+    // biome-ignore lint/style/useTemplate: <explanation>
+    const date = ("0" + String(today.getDate())).slice(-2)
+    const todayDate = `${today.getFullYear()}/${month}/${date}`
+    let heading = ""
+    for (const h of headings) {
+        console.log(h.heading.toLowerCase().includes("poop"))
+        if (h.heading.toLowerCase().includes("poop")) {
+            heading = `${"#".repeat(h.level)} ${h.heading}`
+            break
+        }
+    }
+
+    const array = a.split(heading)
+    array.splice(1, 0, `${heading}\n`)
+    array.splice(2, 0, `${text}\/${todayDate}`)
+
+    let result = ""
+
+    for (const a of array) {
+        result += a
+    }
+    // console.log(String(array))
+    // console.log(result)
+    // console.log( new Date())
+
+    app.vault.process(file, () => result)
+}

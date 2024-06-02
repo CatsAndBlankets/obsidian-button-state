@@ -27,7 +27,7 @@ export class SettingModal extends Modal {
     }
 }
 
-export class AddAButtonModal extends Modal {
+export class PaletteModal extends Modal {
     plugin: MyPlugin
     btnName: string
     btnPalette: string[] = []
@@ -48,7 +48,7 @@ export class AddAButtonModal extends Modal {
             Number(getComputedStyle(this.containerEl).getPropertyValue("--accent-s").replace("%", "")),
             Number(getComputedStyle(this.containerEl).getPropertyValue("--accent-l").replace("%", ""))
         )
-        contentEl.createEl("h1", { text: "What kind of button you wanting?" })
+        contentEl.createEl("h1", { text: "Color Palette Menu" })
 
         new Setting(contentEl).setName("Button Name").addText(text =>
             text.setValue(this.color_id ? this.color_id : "").onChange(value => {
@@ -82,22 +82,16 @@ export class AddAButtonModal extends Modal {
                         cls: "color-block",
                         attr: { style: `background: ${color};` }
                     })
-                    const span = color_div.createEl("span", {
+                    color_div.createEl("span", {
                         text: color,
                         cls: "hex-code"
                     })
 
-                    // this.btnPalette.push(span.innerHTML);
-
-                    const index = this.btnName.length
                     const btn = div.createEl("button")
                     setIcon(btn, "trash-2")
 
                     btn.addEventListener("click", () => {
                         list_item.remove()
-                        // index - 1 !== -1
-                        // 	? this.btnPalette.splice(index - 1, 1)
-                        // 	: this.btnPalette.pop();
                     })
                 })
             )
@@ -118,17 +112,12 @@ export class AddAButtonModal extends Modal {
                     cls: "color-block",
                     attr: { style: `background: ${c};` }
                 })
-                const span = color_div.createEl("span", { text: c, cls: "hex-code" })
-
-                // this.btnPalette.push(span.innerHTML);
-
-                const index = i
+                color_div.createEl("span", { text: c, cls: "hex-code" })
 
                 const btn = div.createEl("button")
                 setIcon(btn, "trash-2")
                 btn.addEventListener("click", () => {
                     list_item.remove()
-                    // this.btnPalette.splice(index - 1, 1);
                 })
             }
         }
@@ -143,7 +132,7 @@ export class AddAButtonModal extends Modal {
             }, 0)
         })
 
-        sortableList.addEventListener("dragend", (e: DragEvent) => {
+        sortableList.addEventListener("dragend", (_e: DragEvent) => {
             setTimeout(() => {
                 ;(draggedItem as HTMLInputElement).style.opacity = "100%"
                 draggedItem = null
@@ -185,17 +174,17 @@ export class AddAButtonModal extends Modal {
 
                 if (!this.btnName && this.btnPalette.length === 0) {
                     new Notice("There's nothing here!")
-                    this.btnPalette = [] //empty out the array to rebuild it for next click event
+                    this.btnPalette = [] //empty the array for next click event
                     return
                 }
                 if (this.btnPalette.length === 0) {
                     new Notice("Where are the colors???")
-                    this.btnPalette = [] //empty out the array to rebuild it for next click event
+                    this.btnPalette = [] //empty the array for next click event
                     return
                 }
                 if (!this.btnName) {
                     new Notice("Where's the palette name???")
-                    this.btnPalette = [] //empty out the array to rebuild it for next click event
+                    this.btnPalette = [] //empty out the array for next click event
                     return
                 }
 

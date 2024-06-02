@@ -1,5 +1,5 @@
 import { type App, PluginSettingTab, Setting, sanitizeHTMLToDom, Notice, setIcon } from "obsidian"
-import { SettingModal, AddAButtonModal } from "modal"
+import { SettingModal, PaletteModal } from "modal"
 import type MyPlugin from "main"
 
 export class SettingTab extends PluginSettingTab {
@@ -53,7 +53,7 @@ export class SettingTab extends PluginSettingTab {
                 const edit_btn = btnDiv.createEl("button")
                 setIcon(edit_btn, "pencil-line")
                 edit_btn?.addEventListener("click", async () => {
-                    new AddAButtonModal(
+                    new PaletteModal(
                         this.app,
                         this.plugin,
                         () => {
