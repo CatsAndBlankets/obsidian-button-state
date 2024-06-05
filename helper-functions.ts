@@ -229,7 +229,15 @@ export function initpickr(color: string, c: string) {
     return pickr
 }
 
-export async function btnAction(app: App, file: TFile, text: string) {
+export async function btnAction(app: App, file: TFile, el: HTMLElement, text: string, uri: string) {
+    console.log("hrere")
+    console.log(uri)
+    if (uri) {
+        const link = el.createEl("a", { attr: { href: uri } })
+        link.click()
+        return
+    }
+
     const f = app.metadataCache.getFileCache(file)
     const headings = f?.headings
     if (!headings) return
@@ -263,4 +271,44 @@ export async function btnAction(app: App, file: TFile, text: string) {
     // console.log( new Date())
 
     app.vault.process(file, () => result)
+}
+
+export function JSONize(str: string) {
+    return (
+        str
+            // wrap everything in brackets
+            .replace(/((.+[\s\n]*)+)/g, $1 => `{${$1}}`)
+            // wrap all pages in a pages record
+            .replace(/((page:.*\n(([\s]*tag:.*[\n])+))+)/gm, `"pages": [$1],`)
+            // wrap each page record in brackets
+            .replace(/(page:.*\n(([\s]*tag:.*[\n])+))/gm, "{$1},")
+            // wrap each tag in a tags record
+            .replace(/\n(([\s]*tag:.*[\n])+)/gm, ` "tags":[$1],`)
+            // wrap each tag record in brackets
+            .replace(/(tag:.*[\n])/gm, $1 => `{${$1}},`)
+            // wrap each range in an array
+            .replace(/ranges:.*\n(([\s]*range:.*[\n])+)/gm, `"ranges":[$1],`)
+            // wrap each color palette in an array
+            .replace(/colors:.*\n(([\s]*range:.*[\n])+)/gm, `"colors":[$1],`)
+            // wrap each range record in brackets
+            .replace(/(range:.*[\n])/gm, "{$1},")
+            // wrap variables in "variable: " in double quotes
+            .replace(/([\w]+):\s/gm, `"$1":`)
+            // adding in commas
+            .replace(/(\"\s\")/gm, `","`)
+            // adding in commas when using boolean values
+            .replace(/(true\s\")/gm, `true,"`)
+            // adding in commas when using boolean values
+            .replace(/(false\s\")/gm, `false,"`)
+            // removing trailing commas },] variation
+            .replace(/([}][,][\s\n]{0,}[\]])/gm, "}]")
+            // removing trailing commas ],} variation
+            .replace(/([\]][,][\s\n]{0,}[}])/gm, "]}")
+            // removing trailing commas },} variation
+            .replace(/([}][,][\s\n]{0,}[}])/gm, "}}")
+            // removing trailing commas ],] variation
+            .replace(/([\]][,][\s\n]{0,}[\]])/gm, "]]")
+            // removing trailing commas ] " variation
+            .replace(/([\]][\s]["])/gm, '], "')
+    )
 }
