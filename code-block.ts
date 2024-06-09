@@ -5,7 +5,7 @@ import { btnAction, JSONize } from "helper-functions"
 export async function buttonStateBlock(source: string, el: HTMLElement, _ctx: MarkdownPostProcessorContext, plugin: MyPlugin) {
     const panel = el.createEl("div", { cls: "button-state" })
     const src = JSON.parse(JSONize(source))
-    console.log(JSON.stringify(src))
+    // console.log(JSON.stringify(src))
 
     if (src.columns) {
         panel.style.setProperty("--columns", src.columns)
@@ -28,55 +28,42 @@ export async function buttonStateBlock(source: string, el: HTMLElement, _ctx: Ma
         const result = this.app.vault.getAbstractFileByPath(page.page)
         for (const tag of page.tags) {
             const btn = panel.createEl("button", { text: tag.name })
-            // console.log(tag.tag)
             // if the color name is in the colors object, convert color name to an array
-            if (colors[tag.color]) {
-                tag.color = colors[tag.color]
-            }
+            if (colors[tag.color]) tag.color = colors[tag.color]
             // if the range name is in the days object, convert range name to an array
-            if (days[tag.range]) {
-                tag.range = days[tag.range]
-            }
+            if (days[tag.range]) tag.range = days[tag.range]
+
             const header = tag.header ? tag.header : page.header
-            // console.log(tag.header)
-            // console.log(page.header)
+            let file: TFile
             if (result instanceof TFile) {
                 console.log("file")
-                findTags(result, tag, panel, btn, plugin, header)
-                btn.addEventListener("click", async () => {
-                    await btnAction(this.app, result, el, tag.tag, tag.uri, header)
-                    await sleep(300)
-                    findTags(result, tag, el, btn, plugin, undefined, 1)
-                    console.log("done")
-                })
+                assignColor(result, tag, panel, btn, plugin)
+                file = result
             } else if (result instanceof TFolder) {
                 console.log("folder")
-                let lastFile: TFile
                 //Assuming that the date format of entries is YYYY-MM-DD, process files in reverse order to get latest entry with target tag(s) in it
                 for (const [index, i] of result.children.reverse().entries()) {
                     if (i instanceof TFile) {
-                        findTags(i, tag, panel, btn, plugin, header)
-                        if (index === result.children.length - 1) {
-                            lastFile = i
-                        }
+                        assignColor(i, tag, panel, btn, plugin)
+                        if (index === result.children.length - 1) file = i
                     }
                 }
-                btn.addEventListener("click", async () => {
-                    await btnAction(this.app, lastFile, el, tag.tag, tag.uri, header)
-                    await sleep(300)
-                    findTags(lastFile, tag, el, btn, plugin, undefined, 1)
-                    console.log("done")
-                })
             }
+            btn.addEventListener("click", async () => {
+                await btnAction(this.app, file, el, tag.tag, tag.uri, header)
+                await sleep(300)
+                assignColor(file, tag, el, btn, plugin)
+                console.log("done")
+            })
         }
     }
 }
 
-function findTags(file: TFile, json: JSON, el: HTMLElement, btn: HTMLElement, plugin: MyPlugin, heading: string | undefined, repeat = 0) {
+function assignColor(file: TFile, json: JSON, el: HTMLElement, btn: HTMLElement, plugin: MyPlugin) {
     const tag = JSON.parse(JSON.stringify(json))
     const tags = this.app.metadataCache.getFileCache(file).tags
     if (!tags) return
-    let output = "#FFFFFF"
+    // let output = "#FFFFFF"
     const color = tag.color
         ? typeof tag.color === "string"
             ? plugin.settings.colors[tag.color]
@@ -86,15 +73,6 @@ function findTags(file: TFile, json: JSON, el: HTMLElement, btn: HTMLElement, pl
         : plugin.settings.colors.default
     const range = tag.range ? tag.range : [0, 1, 3, 7, 14]
     const dateformat = tag.dateformat ? (tag.dateformat === "YYYY/MM/DD" ? /(\d\d\d\d\/\d\d\/\d\d)/g : /(\d\d\d\d-\d\d-\d\d)/g) : /(\d\d\d\d\/\d\d\/\d\d)/g
-
-    // if (tag.action && repeat === 0) {
-    //     btn.addEventListener("click", async () => {
-    //         await btnAction(this.app, file, el, tag.tag, tag.uri, heading)
-    //         await sleep(100)
-    //         findTags(file, json, el, btn, plugin, undefined, 1)
-    //         console.log("done")
-    //     })
-    // }
 
     // get today's date and then set time to midnight so that time is not influencing the difference in days
     const today = new Date()
@@ -108,13 +86,9 @@ function findTags(file: TFile, json: JSON, el: HTMLElement, btn: HTMLElement, pl
 
     for (const t of tags) {
         if (t.tag.contains(tag.tag)) {
-            // console.log("matched tag")
             let date = new Date(t.tag.match(dateformat))
-            if (date.valueOf() === 0) {
-                //apparently need to have date strings as YYYY/MM/DD for Date() to work properly?
-                date = new Date(String(file.name.match(dateformat)).replace("-", "/"))
-            }
-
+            //apparently need to have date strings as YYYY/MM/DD for Date() to work properly?
+            if (date.valueOf() === 0) date = new Date(String(file.name.match(dateformat)).replace("-", "/"))
             diff = Math.round((today.getTime() - date.getTime()) / (1000 * 3600 * 24))
             break
         }
@@ -130,13 +104,8 @@ function findTags(file: TFile, json: JSON, el: HTMLElement, btn: HTMLElement, pl
     zip = tag.reverse ? range.map((left: number, idx: number) => [left, color[color.length - 1 - idx]]) : range.map((left: number, idx: number) => [left, color[idx]])
 
     for (const z of zip) {
-        if (String(diff) >= z[0]) {
-            btn.style.setProperty("background-color", String(z[1]))
-            output = String(z[1])
-        }
+        if (String(diff) >= z[0]) btn.style.setProperty("background-color", String(z[1]))
     }
-
-    return output
 }
 
 export function csvExample(source: string, el: HTMLElement, _ctx: MarkdownPostProcessorContext) {
