@@ -3,7 +3,10 @@ import { ExampleView, VIEW_TYPE_EXAMPLE } from "view"
 import { SampleModal, AddButtonModal, PaletteModal } from "modal"
 import { SettingTab } from "settings"
 import { buttonStateBlock, csvExample } from "code-block"
-addIcon("square-arrow-up-right",`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-arrow-up-right"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 8h8v8"/><path d="m8 16 8-8"/></svg>`)
+addIcon(
+    "square-arrow-up-right",
+    `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-arrow-up-right"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 8h8v8"/><path d="m8 16 8-8"/></svg>`
+)
 // Remember to rename these classes and interfaces!
 
 interface MyPluginSettings {
@@ -50,11 +53,14 @@ export default class MyPlugin extends Plugin {
             buttonStateBlock(source, el, ctx, this)
         })
 
-        // This creates an icon in the left ribbon.
-        const ribbonIconEl = this.addRibbonIcon("dice", "Sample Plugin", (evt: MouseEvent) => {
-            // Called when the user clicks the icon.
-            new Notice("This is a notice! And I added a little extra")
-        })
+        // // This creates an icon in the left ribbon.
+        // const ribbonIconEl = this.addRibbonIcon("dice", "Sample Plugin", (evt: MouseEvent) => {
+        //     // Called when the user clicks the icon.
+        //     new Notice("This is a notice! And I added a little extra")
+        // })
+
+        // // Perform additional things with the ribbon
+        // ribbonIconEl.addClass("my-plugin-ribbon-class")
 
         // Create icon in left ribbon to open palette modal
         this.addRibbonIcon("mouse-pointer-click", "Make a Button", (evt: MouseEvent) => {
@@ -66,30 +72,28 @@ export default class MyPlugin extends Plugin {
             new AddButtonModal(this.app, this, () => {}).open()
         })
 
-        // Perform additional things with the ribbon
-        ribbonIconEl.addClass("my-plugin-ribbon-class")
 
         // This adds a status bar item to the bottom of the app. Does not work on mobile apps.
         const statusBarItemEl = this.addStatusBarItem()
         statusBarItemEl.setText("Status Bar Text")
 
-        // This adds a simple command that can be triggered anywhere
+        // This adds a command to open the palette maker, can be triggered anywhere
         this.addCommand({
             id: "open-palette-maker",
-            name: "Create new button palette",
+            name: "Create new color palette",
             callback: () => {
                 new PaletteModal(this.app, this, () => {}).open()
             }
         })
 
-        // This adds a simple command that can be triggered anywhere
         this.addCommand({
-            id: "open-sample-modal-simple",
-            name: "Open sample modal (simple)",
-            callback: () => {
-                new SampleModal(this.app).open()
+            id: "open-button-maker",
+            name: "Make some buttons",
+            editorCallback: (editor: Editor, view: MarkdownView) => {
+                new AddButtonModal(this.app, this, () => {}).open()
             }
         })
+
         // This adds an editor command that can perform some operation on the current editor instance
         this.addCommand({
             id: "sample-editor-command",

@@ -31,7 +31,7 @@ div.button-state>button:hover {
 }
 
 /* Styling for the button color list modal thing */
-ul#color-list {
+ul#color-list, ul {
     list-style-type: none;
     padding: var(--size-4-1);
     margin: 0;
@@ -110,6 +110,85 @@ div.settings input {
 div.settings input:nth-child(2) {
     flex-grow: 1;
 }
+
+
+
+
+
+/* button menu modal */
+.vertical-menu {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+}
+.vertical-menu>button{
+    height: var(--size-4-6);
+    width: var(--size-4-6);
+    padding: 15%;
+    margin: var(--size-2-1);
+    /* border: var(--size-2-1) solid var(--interactive-accent); */
+}
+.horizontal-menu {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+}
+.horizontal-menu>button {
+    padding: var(--size-4-2);
+    margin: var(--size-4-1);
+}
+.row-menu {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: row;
+}
+
+.row-menu>button {
+    height: var(--size-4-4);
+    padding: var(--size-2-1);
+    padding-bottom: var(--size-4-1);
+    margin: 0 var(--size-2-1);
+    font-size: xx-small;
+    line-height: 20px;
+    /* text-align: center;
+    vertical-align: middle; */
+    border: var(--size-2-1) solid var(--interactive-accent);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* sizing stuff for mobile */
 @media only screen and (max-width: 1000px) {
