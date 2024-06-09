@@ -43,14 +43,30 @@ export async function buttonStateBlock(source: string, el: HTMLElement, _ctx: Ma
             if (result instanceof TFile) {
                 console.log("file")
                 findTags(result, tag, panel, btn, plugin, header)
+                btn.addEventListener("click", async () => {
+                    await btnAction(this.app, result, el, tag.tag, tag.uri, header)
+                    await sleep(300)
+                    findTags(result, tag, el, btn, plugin, undefined, 1)
+                    console.log("done")
+                })
             } else if (result instanceof TFolder) {
                 console.log("folder")
+                let lastFile: TFile
                 //Assuming that the date format of entries is YYYY-MM-DD, process files in reverse order to get latest entry with target tag(s) in it
-                for (const i of result.children.reverse()) {
+                for (const [index, i] of result.children.reverse().entries()) {
                     if (i instanceof TFile) {
                         findTags(i, tag, panel, btn, plugin, header)
+                        if (index === result.children.length - 1) {
+                            lastFile = i
+                        }
                     }
                 }
+                btn.addEventListener("click", async () => {
+                    await btnAction(this.app, lastFile, el, tag.tag, tag.uri, header)
+                    await sleep(300)
+                    findTags(lastFile, tag, el, btn, plugin, undefined, 1)
+                    console.log("done")
+                })
             }
         }
     }
@@ -60,6 +76,7 @@ function findTags(file: TFile, json: JSON, el: HTMLElement, btn: HTMLElement, pl
     const tag = JSON.parse(JSON.stringify(json))
     const tags = this.app.metadataCache.getFileCache(file).tags
     if (!tags) return
+    let output = "#FFFFFF"
     const color = tag.color
         ? typeof tag.color === "string"
             ? plugin.settings.colors[tag.color]
@@ -70,14 +87,14 @@ function findTags(file: TFile, json: JSON, el: HTMLElement, btn: HTMLElement, pl
     const range = tag.range ? tag.range : [0, 1, 3, 7, 14]
     const dateformat = tag.dateformat ? (tag.dateformat === "YYYY/MM/DD" ? /(\d\d\d\d\/\d\d\/\d\d)/g : /(\d\d\d\d-\d\d-\d\d)/g) : /(\d\d\d\d\/\d\d\/\d\d)/g
 
-    if (tag.action && repeat === 0) {
-        btn.addEventListener("click", async () => {
-            await btnAction(this.app, file, el, tag.tag, tag.uri, heading)
-            await sleep(100)
-            findTags(file, json, el, btn, plugin, undefined, 1)
-            console.log("done")
-        })
-    }
+    // if (tag.action && repeat === 0) {
+    //     btn.addEventListener("click", async () => {
+    //         await btnAction(this.app, file, el, tag.tag, tag.uri, heading)
+    //         await sleep(100)
+    //         findTags(file, json, el, btn, plugin, undefined, 1)
+    //         console.log("done")
+    //     })
+    // }
 
     // get today's date and then set time to midnight so that time is not influencing the difference in days
     const today = new Date()
@@ -115,8 +132,11 @@ function findTags(file: TFile, json: JSON, el: HTMLElement, btn: HTMLElement, pl
     for (const z of zip) {
         if (String(diff) >= z[0]) {
             btn.style.setProperty("background-color", String(z[1]))
+            output = String(z[1])
         }
     }
+
+    return output
 }
 
 export function csvExample(source: string, el: HTMLElement, _ctx: MarkdownPostProcessorContext) {
