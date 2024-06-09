@@ -7,6 +7,10 @@ export async function buttonStateBlock(source: string, el: HTMLElement, _ctx: Ma
     const src = JSON.parse(JSONize(source))
     console.log(JSON.stringify(src))
 
+    if (src.columns) {
+        panel.style.setProperty("--columns", src.columns)
+    }
+
     const colors: { [index: string]: string[] } = {}
     const days: { [index: string]: number[] } = {}
     if (src.colors) {
