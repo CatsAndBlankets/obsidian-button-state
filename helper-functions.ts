@@ -229,48 +229,52 @@ export function initpickr(color: string, c: string) {
     return pickr
 }
 
-export async function btnAction(app: App, file: TFile, el: HTMLElement, text: string, uri: string) {
-    console.log("hrere")
-    console.log(uri)
+export async function btnAction(app: App, file: TFile, el: HTMLElement, text: string, uri: string, heading: string | undefined) {
+    // If URI was provided, execute link
     if (uri) {
         const link = el.createEl("a", { attr: { href: uri } })
         link.click()
         return
     }
 
-    const f = app.metadataCache.getFileCache(file)
-    const headings = f?.headings
-    if (!headings) return
-    const a = await app.vault.cachedRead(file)
     const today = new Date()
-    // biome-ignore lint/style/useTemplate: <explanation>
-    const month = ("0" + String(today.getMonth() + 1)).slice(-2)
-    // biome-ignore lint/style/useTemplate: <explanation>
-    const date = ("0" + String(today.getDate())).slice(-2)
+
+    const month = `0${String(today.getMonth() + 1)}`.slice(-2)
+    const date = `0${String(today.getDate())}`.slice(-2)
     const todayDate = `${today.getFullYear()}/${month}/${date}`
-    let heading = ""
-    for (const h of headings) {
-        console.log(h.heading.toLowerCase().includes("poop"))
-        if (h.heading.toLowerCase().includes("poop")) {
-            heading = `${"#".repeat(h.level)} ${h.heading}`
-            break
+
+    let result = ""
+    if (heading) {
+        const f = app.metadataCache.getFileCache(file)
+        const fileHeadings = f?.headings
+        if (!fileHeadings) return
+
+        const a = await app.vault.read(file)
+
+        let fileHeading = ""
+        for (const h of fileHeadings) {
+            console.log(h.heading.toLowerCase().includes(heading.toLowerCase()))
+            if (h.heading.toLowerCase().includes(heading.toLowerCase())) {
+                fileHeading = `${"#".repeat(h.level)} ${h.heading}`
+                console.log(fileHeading)
+                break
+            }
+        }
+        const array = a.split(fileHeading)
+        array.splice(1, 0, `${fileHeading}\n`)
+        array.splice(2, 0, `${text}\/${todayDate}`)
+
+        for (const a of array) {
+            result += a
         }
     }
 
-    const array = a.split(heading)
-    array.splice(1, 0, `${heading}\n`)
-    array.splice(2, 0, `${text}\/${todayDate}`)
-
-    let result = ""
-
-    for (const a of array) {
-        result += a
+    if (result !== "") {
+        app.vault.process(file, () => result)
+    } else {
+        console.log("empty string, appending tag to bottom of file on a new line")
+        app.vault.append(file, `\n${text}\/${todayDate}`)
     }
-    // console.log(String(array))
-    // console.log(result)
-    // console.log( new Date())
-
-    app.vault.process(file, () => result)
 }
 
 export function JSONize(str: string) {
@@ -287,11 +291,11 @@ export function JSONize(str: string) {
             // wrap each tag record in brackets
             .replace(/(tag:.*[\n])/gm, $1 => `{${$1}},`)
             // wrap each range in an array
-            .replace(/ranges:.*\n(([\s]*range:.*[\n])+)/gm, `"ranges":[$1],`)
+            .replace(/ranges:.*\n(([\s]*range:.*[\n])+)/gm, `"ranges":[  $1],`)
             // wrap each color palette in an array
-            .replace(/colors:.*\n(([\s]*range:.*[\n])+)/gm, `"colors":[$1],`)
+            .replace(/colors:.*\n(([\s]*range:.*[\n])+)/gm, `"colors":[  $1],`)
             // wrap each range record in brackets
-            .replace(/(range:.*[\n])/gm, "{$1},")
+            .replace(/[\n]?[\s]{2,}(range:.*[\n]?)/gm, "{$1},")
             // wrap variables in "variable: " in double quotes
             .replace(/([\w]+):\s/gm, `"$1":`)
             // adding in commas
