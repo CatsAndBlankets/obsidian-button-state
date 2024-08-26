@@ -34,25 +34,35 @@ export async function buttonStateBlock(source: string, el: HTMLElement, _ctx: Ma
             if (days[tag.range]) tag.range = days[tag.range]
 
             const header = tag.header ? tag.header : page.header
-            let file: TFile
+            // console.log( header )
+            let file: TFile | TFolder
             if (result instanceof TFile) {
+                file = result
                 console.log("file")
                 assignColor(result, tag, panel, btn, plugin)
-                file = result
             } else if (result instanceof TFolder) {
                 console.log("folder")
                 //Assuming that the date format of entries is YYYY-MM-DD, process files in reverse order to get latest entry with target tag(s) in it
-                for (const [index, i] of result.children.reverse().entries()) {
+                for (const i of result.children) {
+                    file = result
                     if (i instanceof TFile) {
                         assignColor(i, tag, panel, btn, plugin)
-                        if (index === result.children.length - 1) file = i
                     }
                 }
             }
             btn.addEventListener("click", async () => {
-                await btnAction(this.app, file, el, tag.tag, tag.uri, header)
+                await btnAction(this.app, file, panel, tag.tag, tag.uri, header)
                 await sleep(300)
-                assignColor(file, tag, el, btn, plugin)
+                if (file instanceof TFile) {
+                    assignColor(file, tag, panel, btn, plugin)
+                } else {
+                    for (const i of file.children) {
+                        console.log(i)
+                        if (i instanceof TFile) {
+                            assignColor(i, tag, panel, btn, plugin)
+                        }
+                    }
+                }
                 console.log("done")
             })
         }
@@ -95,7 +105,8 @@ function assignColor(file: TFile, json: JSON, el: HTMLElement, btn: HTMLElement,
     }
 
     // stop function if difference doesn't exist or is less than zero
-    if (diff === undefined || (diff as number) < 0) return
+    if (diff === undefined || (diff as number) < 0 || Number.isNaN(diff)) return
+
     if (range.length !== color.length) {
         el.createEl("span", { text: "range and colors need to be the same length!" })
         return
@@ -104,7 +115,9 @@ function assignColor(file: TFile, json: JSON, el: HTMLElement, btn: HTMLElement,
     zip = tag.reverse ? range.map((left: number, idx: number) => [left, color[color.length - 1 - idx]]) : range.map((left: number, idx: number) => [left, color[idx]])
 
     for (const z of zip) {
-        if (String(diff) >= z[0]) btn.style.setProperty("background-color", String(z[1]))
+        if (String(diff) >= z[0]) {
+            btn.style.setProperty("background-color", String(z[1]))
+        }
     }
 }
 

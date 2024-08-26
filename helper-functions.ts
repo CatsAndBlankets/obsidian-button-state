@@ -1,5 +1,5 @@
 import Pickr from "@simonwep/pickr"
-import type { App, TFile } from "obsidian"
+import { type App, TFile, type TFolder } from "obsidian"
 
 export function HSLToHex(h: number, s: number, l: number) {
     const ss = s / 100
@@ -229,7 +229,7 @@ export function initpickr(color: string, c: string) {
     return pickr
 }
 
-export async function btnAction(app: App, file: TFile, el: HTMLElement, text: string, uri: string, heading: string | undefined) {
+export async function btnAction(app: App, file: TFile | TFolder, el: HTMLElement, text: string, uri: string, heading: string | undefined) {
     // If URI was provided, execute link
     if (uri) {
         const link = el.createEl("a", { attr: { href: uri } })
@@ -237,43 +237,51 @@ export async function btnAction(app: App, file: TFile, el: HTMLElement, text: st
         return
     }
 
-    const today = new Date()
+    // create a tag to append to the bottom of chosen file
+    if (file instanceof TFile) {
+        let tag: string
+        if (!text.includes("#")) {
+            tag = `#${text}`
+        }
+        tag = text.includes("#") ? `${text}` : `#${text}`
 
-    const month = `0${String(today.getMonth() + 1)}`.slice(-2)
-    const date = `0${String(today.getDate())}`.slice(-2)
-    const todayDate = `${today.getFullYear()}/${month}/${date}`
+        const today = new Date()
 
-    let result = ""
-    if (heading) {
-        const f = app.metadataCache.getFileCache(file)
-        const fileHeadings = f?.headings
-        if (!fileHeadings) return
+        const month = `0${String(today.getMonth() + 1)}`.slice(-2)
+        const date = `0${String(today.getDate())}`.slice(-2)
+        const todayDate = `${today.getFullYear()}/${month}/${date}`
 
-        const a = await app.vault.read(file)
+        let result = ""
 
-        let fileHeading = ""
-        for (const h of fileHeadings) {
-            console.log(h.heading.toLowerCase().includes(heading.toLowerCase()))
-            if (h.heading.toLowerCase().includes(heading.toLowerCase())) {
-                fileHeading = `${"#".repeat(h.level)} ${h.heading}`
-                console.log(fileHeading)
-                break
+        if (heading) {
+            const f = app.metadataCache.getFileCache(file)
+            const fileHeadings = f?.headings
+            if (!fileHeadings) return
+
+            const a = await app.vault.read(file)
+
+            let fileHeading = ""
+            for (const h of fileHeadings) {
+                if (h.heading.toLowerCase().includes(heading.toLowerCase())) {
+                    fileHeading = `${"#".repeat(h.level)} ${h.heading}`
+                    break
+                }
+            }
+            const array = a.split(fileHeading)
+            array.splice(1, 0, `${fileHeading}\n`)
+            array.splice(2, 0, `${tag}\/${todayDate}`)
+
+            for (const a of array) {
+                result += a
             }
         }
-        const array = a.split(fileHeading)
-        array.splice(1, 0, `${fileHeading}\n`)
-        array.splice(2, 0, `${text}\/${todayDate}`)
 
-        for (const a of array) {
-            result += a
+        if (result !== "") {
+            app.vault.process(file, () => result)
+        } else {
+            console.log("empty string, appending tag to bottom of file on a new line")
+            app.vault.append(file, `\n${tag}\/${todayDate}`)
         }
-    }
-
-    if (result !== "") {
-        app.vault.process(file, () => result)
-    } else {
-        console.log("empty string, appending tag to bottom of file on a new line")
-        app.vault.append(file, `\n${text}\/${todayDate}`)
     }
 }
 
